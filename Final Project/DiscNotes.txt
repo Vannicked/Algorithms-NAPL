@@ -1,0 +1,6 @@
+## Difficulty
+- All levels have the same set amount of time
+- Win by having the highest return on investment for the entire portfolio
+
+## Investment Periods
+- From open to open between months
