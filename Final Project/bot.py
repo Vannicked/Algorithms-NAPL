@@ -1,8 +1,11 @@
+import pandas as pd
+
 class Stock:
 
-    def __init__(self, name, value):
+    def __init__(self, name, value, data):
         self.name = name
         self.value = value
+        self.data = pd.read_csv(data)
 
     def valueChange(self, newValue):
         self.value = newValue
