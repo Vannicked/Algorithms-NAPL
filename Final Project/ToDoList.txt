@@ -1,0 +1,3 @@
+To Do List:
+
+Concatenate data into a single CSV file, with each type of stock grouped. Each column is a stock and each row is a date, only using the open data for each.
