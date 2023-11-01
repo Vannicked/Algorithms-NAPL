@@ -1,4 +1,6 @@
 from trader import Trader
+import bot
+
 
 class GameManager:
     header = ["Stock", "M1", "M2"]
@@ -45,6 +47,7 @@ class GameManager:
                 return choice
             except:
                 print(f"Please input a whole number between 1 and {self.data.length}")
+
 
 @staticmethod
 def displayTable(table : list):
