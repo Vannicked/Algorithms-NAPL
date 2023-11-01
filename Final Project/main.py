@@ -1,3 +1,5 @@
+import bot
+
 def displayTable(table : list):
     # should only take an array of strings as input
     tableLength = len(table)

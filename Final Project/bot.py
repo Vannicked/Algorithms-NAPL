@@ -26,3 +26,7 @@ class Bot:
         else:
             #same for here
             print(self.alg)
+
+    def greedy(self):
+        #this function is the implementation of the greedy investment algorithm
+        print("greed")
