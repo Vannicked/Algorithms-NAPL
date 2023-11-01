@@ -1,4 +1,11 @@
 To Do List:
 
+<<<<<<< HEAD
 Concatenate data into a single CSV file, with each type of stock grouped. Each column is a stock and each row is a date, only using the open data for each.
 Development of various investment algorithms as functions within the Bot class (greedy, long term, goldfish/random)
+=======
+- Concatenate data into a single CSV file
+- with each type of stock grouped
+- Each column is a stock and each row is a date
+- only using the open data for each.
+>>>>>>> c7d9bde203de6f5214b66456cad6ecdbc12e63cf
