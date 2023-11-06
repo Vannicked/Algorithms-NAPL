@@ -4,3 +4,14 @@
 
 ## Investment Periods
 - From open to open between months
+
+## Stategies + Implementation
+- Greedy: Unlike other algorithms, that consider the optimal solution over a more extensive timeframe, greedy algorithms make decisions at the given time instance.
+This results in efficient computations and faster results. However, there is a downside to this approach. The greedy approach might not always provide the most optimal solution. This occurs because it considers only the current instance to make a decision.
+  - Implementation:
+  1. Calc Max Profit
+    a. view the buy-ins and sell points
+    b. take the lowest buy point and sell at the highest point after that buy point ( if there's no profitable option calc the lowest loss )
+    c. calc the difference and use as profit
+
+source: https://www.section.io/engineering-education/greedy-algorithms/
