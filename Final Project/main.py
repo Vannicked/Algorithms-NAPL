@@ -10,7 +10,8 @@ class GameManager:
     timeframeStart : int
     timeframeEnd : int
     
-    def sData(self, data):
+    def sData(self, data): 
+        # all of these sName functions are set functions
         self.data = data
         return self
     
@@ -19,6 +20,7 @@ class GameManager:
         return self
     
     def sTimeframe(self, start, end):
+        self.currentTime = start
         self.timeframeStart = start
         self.timeframeEnd = end
         return self
@@ -29,24 +31,62 @@ class GameManager:
             data.append(d)
         return data
     
+    def gameStart(self):
+        gameRunning = True
+        while gameRunning:
+            gameRunning = self.currentTime <= self.timeframeEnd
+            
+            self.progress()
+        self.endGame()
+                
     def progress(self):
-        if currentTime == self.timeframeEnd:
-            self.endGame()
-        else:
-            currentTime = currentTime + 1
+        if self.currentTime >= len(self.data):
+            raise IndexError("Current time has surpassed size of data.")
+        
+        tableData = self.getData()
+        table = buildTable(tableData)
+        displayTable(table)
+        
+        for t in self.traders:
+            currTrader : Trader = t
+            self.buyStock(currTrader)
+        self.currentTime = self.currentTime + 1
     
     def endGame(self):
         for t in self.traders:
             displayTraderInfo(t)
 
-    def chooseStock(self, trader):
-        if (trader.getController == "Player"):
-            choice = input("Which stock to invest? ")
-            try:
-                choice = int(choice)
-                return choice
-            except:
-                print(f"Please input a whole number between 1 and {self.data.length}")
+    def buyStock(self, trader : Trader):
+        if (trader.getController() == "Player"):
+            choosing = True
+            while choosing:
+                try:
+                    choice = int(input("Which stock to invest? ")) - 1
+                    if choice == -1:
+                        stockTup = None
+                        choosing == False
+                    else:
+                        stockTup = (self.data[choice][0], self.data[choice][self.currentTime])
+                        choosing = self.verifyChoice(stockTup)
+                except:
+                    print(f"Please input a whole number between 1 and {len(self.data)}, or 0 to choose none.")
+        
+        if stockTup != None:
+            stockChoice : bot.Stock = bot.Stock(stockTup[0], stockTup[1])
+            trader.addStock(stockChoice)
+
+    # TODO: implement selling stocks
+
+    def verifyChoice(self, choice):
+        # should take the choice after choose stock is called
+        verifying = True
+        while verifying:
+            answer : str = input(f"Are you sure you want to buy {choice[0]} at {choice[1]}? [y/n] ")
+            answer = answer.lower()
+            if answer != 'y' and answer != 'n':
+                print("Please input a valid answer [y/n].")
+            else:
+                return answer == 'n'
 
 
 @staticmethod
@@ -140,11 +180,9 @@ def main():
     testData = [["AMC", 4.5, 7],["GME", 555, 6],["BBBYQ", 8, 999]]
     player = Trader("Player", playerBal)
     traders = [player]
-    game = GameManager()
-    game.sData(testData).sTimeframe(1, 6).sTraders(traders)
-    tableData = game.getData()
-    table = buildTable(tableData)
-    displayTable(table)
+    gameManager = GameManager()
+    gameManager.sData(testData).sTimeframe(1, 6).sTraders(traders)
+    gameManager.gameStart()
     
     
 
