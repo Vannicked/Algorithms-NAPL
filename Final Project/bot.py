@@ -32,4 +32,39 @@ class Bot:
 
     def greedy(self):
         #this function is the implementation of the greedy investment algorithm
+        #dictionary to keep track of stock prices
+        stock_price = {}
+        #stock prices in dictionary
+        for stock in self.stocks:
+            stock_price[stock.name] = stock.value
+
+        while self.money > 0:
+            # stock with the lowest current value
+            min_stock_name = min(stock_prices, key=stock_prices.get)
+
+            # Check if the bot can afford to buy the stock
+            if self.money >= stock_prices[min_stock_name]:
+                # Buy stock
+                self.money -= stock_prices[min_stock_name]
+                print(f"Buying {min_stock_name} for {stock_prices[min_stock_name]}")
+                # Update the bot's stocks list (need to implement this method)
+                self.buy_stock(min_stock_name)
+            else:
+                # If the bot can't afford to buy any stock, break the loop
+                break
+
+            # Update the stock prices dictionary after the purchase
+            stock_prices[min_stock_name] = stock_prices[min_stock_name] * 1.1  # Simulate price increase
+
+        #print(f"Remaining money: {self.money}")
+        #print("End of Greedy Algorithm")
+
+    # Add a method to buy a stock and keep track of it
+    def buy_stock(self, stock_name):
+        for stock in self.stocks:
+            if stock.name == stock_name:
+                stock.valueChange(stock.value * 1.1)  # Simulate price increase
+                # Implement the logic to keep track of the stocks bought
+                # For example, you can maintain a list of bought stocks or update a data structure
+
         print("greed")
