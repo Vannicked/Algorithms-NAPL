@@ -19,24 +19,13 @@ class Bot:
         self.money = money  #money is the amount of total money the bot has left after buying/selling
         self.stocks = stocks #stocks is an array of stock options (need to hardcode indices in order to reference number of stocks purchased)
 
-    def invest(self):
-        if (self.alg == 1):
-            #insert whatever trading algorithm is the first one we come up with
-            print(self.alg)
-        elif (self.alg == 2):
-            #same for here
-            print(self.alg)
-        else:
-            #same for here
-            print(self.alg)
-
     def greedy(self):
         #this function is the implementation of the greedy investment algorithm
         #dictionary to keep track of stock prices
-        stock_price = {}
+        stock_prices = {}
         #stock prices in dictionary
         for stock in self.stocks:
-            stock_price[stock.name] = stock.value
+            stock_prices[stock.name] = stock.value
 
         while self.money > 0:
             # stock with the lowest current value
@@ -59,6 +48,13 @@ class Bot:
         #print(f"Remaining money: {self.money}")
         #print("End of Greedy Algorithm")
 
+    def longterm(self):
+        #this function is the implementation of the long term investment algorithm
+        #also utilizes a dictionary to track stock prices
+        stock_prices = {}
+        for stock in self.stocks:
+            stock_prices[stock.name] = stock.value
+
     # Add a method to buy a stock and keep track of it
     def buy_stock(self, stock_name):
         for stock in self.stocks:
@@ -67,4 +63,12 @@ class Bot:
                 # Implement the logic to keep track of the stocks bought
                 # For example, you can maintain a list of bought stocks or update a data structure
 
-        print("greed")
+    def invest(self):
+        if (self.alg == 1):
+            self.greedy()
+        elif (self.alg == 2):
+            #same for here
+            print(self.alg)
+        else:
+            #same for here
+            print(self.alg)
