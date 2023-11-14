@@ -14,3 +14,6 @@ class Trader:
     
     def addStock(self, stock):
         self.stocks.append(stock)
+    
+    def popStock(self, i):
+        return self.stocks.pop(i)

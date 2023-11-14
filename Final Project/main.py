@@ -49,6 +49,7 @@ class GameManager:
         
         for t in self.traders:
             currTrader : Trader = t
+            self.sellStock(currTrader)
             self.buyStock(currTrader)
         self.currentTime = self.currentTime + 1
     
@@ -56,12 +57,13 @@ class GameManager:
         for t in self.traders:
             displayTraderInfo(t)
 
+    # it is frustrating how messy all of this is, but if it works I'll be happy
     def buyStock(self, trader : Trader):
         if (trader.getController() == "Player"):
             choosing = True
             while choosing:
                 try:
-                    choice = int(input("Which stock to invest? ")) - 1
+                    choice = int(input("Which stock to buy? ")) - 1
                     if choice == -1:
                         stockTup = None
                         choosing == False
@@ -76,12 +78,32 @@ class GameManager:
             trader.addStock(stockChoice)
 
     # TODO: implement selling stocks
+    def sellStock(self, trader : Trader):
+        # need to get the current value of the stock
+        if (trader.getController() == "Player"):
+            choosing = True
+            while choosing:
+                try:
+                    choice = int(input("Which stock to sell? ")) - 1
+                    if choice == -1:
+                        stockTup = None
+                        choosing == False
+                    else:
+                        stockChoice : bot.Stock = trader.stocks[choice] 
+                        stockTup = (stockChoice.name, stockChoice.value)
+                        choosing = self.verifyChoice(stockTup, 1)
+                except:
+                    print(f"Please input a whole number between 1 and {len(trader.stocks)}, or 0 to choose none.")
+        
+        if stockTup != None:
+            trader.popStock(stockChoice)
 
-    def verifyChoice(self, choice):
+    def verifyChoice(self, choice, buySell = 0):
         # should take the choice after choose stock is called
         verifying = True
+        bs = ("Buy", "Sell")
         while verifying:
-            answer : str = input(f"Are you sure you want to buy {choice[0]} at {choice[1]}? [y/n] ")
+            answer : str = input(f"Are you sure you want to {bs[buySell]} {choice[0]} at {choice[1]}? [y/n] ")
             answer = answer.lower()
             if answer != 'y' and answer != 'n':
                 print("Please input a valid answer [y/n].")
