@@ -2,13 +2,17 @@ import pandas as pd
 
 class Stock:
 
-    def __init__(self, name, value, data):
+    def __init__(self, name, value):
         self.name = name
-        self.value = value
-        self.data = pd.read_csv(data)
+        self.value = value #need to figure out if we want to include all values for the stock in this variable or just a single value
 
     def valueChange(self, newValue):
         self.value = newValue
+
+class StockMarket:
+
+    def __init__(self, stockOptions):
+        self.stockOptions = pd.read_csv("StockPrices.csv")
 
 class Bot:
     
@@ -17,7 +21,7 @@ class Bot:
         self.alg = alg #alg is an integer meant to represent a specific trading strategy that we implement
         self.diff = diff    #diff is the difficulty level that the bot is playing on
         self.money = money  #money is the amount of total money the bot has left after buying/selling
-        self.stocks = stocks #stocks is an array of stock options (need to hardcode indices in order to reference number of stocks purchased)
+        self.stocks = stocks #stocks is a dictionary of stocks that the bot has invested in
 
     def greedy(self):
         #this function is the implementation of the greedy investment algorithm
