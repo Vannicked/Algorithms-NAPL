@@ -1,27 +1,29 @@
 import pandas as pd
 
-class Stock:
-
-    def __init__(self, name, value):
-        self.name = name
-        self.value = value #need to figure out if we want to include all values for the stock in this variable or just a single value
-
-    def valueChange(self, newValue):
-        self.value = newValue
-
-class StockMarket:
-
-    def __init__(self, stockOptions):
-        self.stockOptions = pd.read_csv("StockPrices.csv")
+stock_options = pd.read_csv("StockPrices.csv") #initialze a dataframe with all the data we need to access
+date = 0 #this is the index of the row in which we are looking at values for data, and will be updated as the game progresses
 
 class Bot:
     
     #initialize a new bot object, including the algorithm it uses for trading, the amount of money it has, and difficulty level
-    def __init__(self, alg, diff, money, stocks):
+    def __init__(self, alg, money):
         self.alg = alg #alg is an integer meant to represent a specific trading strategy that we implement
-        self.diff = diff    #diff is the difficulty level that the bot is playing on
         self.money = money  #money is the amount of total money the bot has left after buying/selling
-        self.stocks = stocks #stocks is a dictionary of stocks that the bot has invested in
+        self.stocks = {"AAL": 0,
+                       "AAPL": 0,
+                       "AMZN": 0,
+                       "BAC": 0,
+                       "DAL": 0,
+                       "HMC": 0,
+                       "JNJ": 0,
+                       "JPM": 0,
+                       "LLY": 0,
+                       "LUV": 0,
+                       "MSFT": 0,
+                       "TM": 0,
+                       "TSLA": 0,
+                       "UNH": 0,
+                       "V": 0} #stocks is a dictionary of stocks that the bot can invest in and updates according to the number of shares it holds
 
     def greedy(self):
         #this function is the implementation of the greedy investment algorithm
@@ -54,25 +56,33 @@ class Bot:
 
     def longterm(self):
         #this function is the implementation of the long term investment algorithm
-        #also utilizes a dictionary to track stock prices
-        stock_prices = {}
-        for stock in self.stocks:
-            stock_prices[stock.name] = stock.value
+        for key in self.stocks:
+            if (date != 0):
+                if (stock_options[date - 1][key] > stock_options[date][key]):
+                    self.sell_stock(key)
+                else:
+                    continue
+            if (self.money > stock_options[date][key]):
+                self.buy_stock(key, 1)
+
+        print("longterm")
+
+    def goldfish(self):
+        print("goldfish")
 
     # Add a method to buy a stock and keep track of it
-    def buy_stock(self, stock_name):
-        for stock in self.stocks:
-            if stock.name == stock_name:
-                stock.valueChange(stock.value * 1.1)  # Simulate price increase
-                # Implement the logic to keep track of the stocks bought
-                # For example, you can maintain a list of bought stocks or update a data structure
+    def buy_stock(self, stock_name, shares):
+        self.stocks.update[stock_name] = shares
+        self.money = self.money - (stock_options[date][stock_name] * shares)
+
+    def sell_stock(self, stock_name):
+        self.money = self.money + (stock_options[date][stock_name] * self.stocks[stock_name])
+        self.stocks[stock_name] = 0
 
     def invest(self):
         if (self.alg == 1):
             self.greedy()
         elif (self.alg == 2):
-            #same for here
-            print(self.alg)
+            self.longterm()
         else:
-            #same for here
-            print(self.alg)
+            self.goldfish()
