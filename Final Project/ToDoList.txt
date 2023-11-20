@@ -1,4 +1,4 @@
 To Do List:
 
-Development of various investment algorithms as functions within the Bot class (greedy, long term, goldfish/random)
+Development of various investment algorithms as functions within the Bot class (greedy, goldfish/random)
 Organizing the functions of the stock, stockmarket, and bot classes in order to ensure their functionality with one another
