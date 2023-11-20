@@ -56,14 +56,17 @@ class Bot:
 
     def longterm(self):
         #this function is the implementation of the long term investment algorithm
-        for key in self.stocks:
-            if (date != 0):
-                if (stock_options[date - 1][key] > stock_options[date][key]):
-                    self.sell_stock(key)
-                else:
-                    continue
-            if (self.money > stock_options[date][key]):
-                self.buy_stock(key, 1)
+        if date != 0:
+            for key in self.stocks:
+                self.sell_stock(key)
+            for key in self.stocks:
+                if (self.money > stock_options[date][key]):
+                    self.buy_stock(key, 5)
+        else:
+            for key in self.stocks:
+                if (self.money > stock_options[date][key]):
+                    self.buy_stock(key, 5)
+
 
         print("longterm")
 
