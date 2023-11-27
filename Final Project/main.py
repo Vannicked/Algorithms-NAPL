@@ -1,7 +1,7 @@
 from trader import Trader
 from bot import Stock
 from bot import Bot
-
+import ScreenManager
 
 class GameManager:
     header = ["Stock", "M1", "M2"]
@@ -10,8 +10,10 @@ class GameManager:
     currentTime : int
     timeframeStart : int
     timeframeEnd : int
-    currentScreen : int
-    displays : dict = {"AllStocks": 1, "PlayerStocks" : 2}
+    screenManager : ScreenManager.ScreenManager
+    
+    def __init__(self) -> None:
+        self.screenManager = ScreenManager.ScreenManager()
     
     def sData(self, data): 
         # all of these sName functions are set functions
@@ -47,10 +49,9 @@ class GameManager:
             raise IndexError("Current time has surpassed size of data.")
         
         # TODO: Would be nice to rework this into a screenManager
-        self.currentDisplay = self.displays["AllStocks"]
+
         tableData = self.getData()
-        table = buildTable(tableData)
-        displayTable(table)
+        self.screenManager.request("Table", tableData)
         
         for t in self.traders:
             currTrader : Trader = t
