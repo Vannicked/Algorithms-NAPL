@@ -1,5 +1,6 @@
 from trader import Trader
-import bot
+from bot import Stock
+from bot import Bot
 
 
 class GameManager:
@@ -9,6 +10,8 @@ class GameManager:
     currentTime : int
     timeframeStart : int
     timeframeEnd : int
+    currentScreen : int
+    displays : dict = {"AllStocks": 1, "PlayerStocks" : 2}
     
     def sData(self, data): 
         # all of these sName functions are set functions
@@ -43,19 +46,42 @@ class GameManager:
         if self.currentTime >= len(self.data):
             raise IndexError("Current time has surpassed size of data.")
         
+        # TODO: Would be nice to rework this into a screenManager
+        self.currentDisplay = self.displays["AllStocks"]
         tableData = self.getData()
         table = buildTable(tableData)
         displayTable(table)
         
         for t in self.traders:
             currTrader : Trader = t
-            self.sellStock(currTrader)
-            self.buyStock(currTrader)
+            self.traderAction(t)
         self.currentTime = self.currentTime + 1
     
     def endGame(self):
         for t in self.traders:
             displayTraderInfo(t)
+
+    def traderAction(self, trader : Trader):
+        if (trader.getController() == "Player"):
+            choosing = True
+            while choosing:
+                buySell : str = inputClean("Buy stock or sell stock? [b, s, n] ")
+                buySell = buySell.lower()
+                match buySell:
+                    case "b":
+                        self.buyStock(trader)
+                    
+                    case "s":
+                        self.sellStock(trader)
+                    
+                    case "n":
+                        choosing = False
+                    
+                    case _:
+                        print("Please input either b or s for buy or sell respectively, or n to exit.")
+        else:
+            self.sellStock(trader)
+            self.buyStock(trader)
 
     # it is frustrating how messy all of this is, but if it works I'll be happy
     def buyStock(self, trader : Trader):
@@ -63,7 +89,7 @@ class GameManager:
             choosing = True
             while choosing:
                 try:
-                    choice = int(input("Which stock to buy? ")) - 1
+                    choice = int(inputClean("Which stock to buy? ")) - 1
                     if choice == -1:
                         stockTup = None
                         choosing == False
@@ -74,22 +100,28 @@ class GameManager:
                     print(f"Please input a whole number between 1 and {len(self.data)}, or 0 to choose none.")
         
         if stockTup != None:
-            stockChoice : bot.Stock = bot.Stock(stockTup[0], stockTup[1])
+            stockChoice : Stock = Stock(stockTup[0], stockTup[1])
             trader.addStock(stockChoice)
 
     # TODO: implement selling stocks
     def sellStock(self, trader : Trader):
         # need to get the current value of the stock
         if (trader.getController() == "Player"):
-            choosing = True
+            playerStockCount = len(trader.stocks)
+            choosing = playerStockCount != 0
+            if not choosing:
+                print("You have no stocks to sell!")
+                return
+
+            
             while choosing:
                 try:
-                    choice = int(input("Which stock to sell? ")) - 1
+                    choice = int(inputClean("Which stock to sell? ")) - 1
                     if choice == -1:
                         stockTup = None
                         choosing == False
                     else:
-                        stockChoice : bot.Stock = trader.stocks[choice] 
+                        stockChoice : Stock = trader.stocks[choice] 
                         stockTup = (stockChoice.name, stockChoice.value)
                         choosing = self.verifyChoice(stockTup, 1)
                 except:
@@ -103,7 +135,7 @@ class GameManager:
         verifying = True
         bs = ("Buy", "Sell")
         while verifying:
-            answer : str = input(f"Are you sure you want to {bs[buySell]} {choice[0]} at {choice[1]}? [y/n] ")
+            answer : str = inputClean(f"Are you sure you want to {bs[buySell]} {choice[0]} at {choice[1]}? [y/n] ")
             answer = answer.lower()
             if answer != 'y' and answer != 'n':
                 print("Please input a valid answer [y/n].")
@@ -196,6 +228,15 @@ def displayTraderInfo(t : Trader):
         bufferString = bufferString + "\n"
         bufferString = bufferString + s.name
     return bufferString
+
+@staticmethod
+def inputClean(s : str):
+    result : str = ""
+    try:
+        result : str = input(s)
+    except EOFError:
+        exit()
+    return result
 
 def main():
     playerBal = 100
