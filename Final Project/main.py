@@ -3,8 +3,10 @@ from bot import Stock
 from bot import Bot
 import ScreenManager
 
+
 class GameManager:
-    header = ["Stock", "M1", "M2"]
+    stockHeader = ["Stock", "M1", "M2"] # We'll need to implement a shifting date function
+    traderStocks = ["Stock", "Bought At", "Now", "Amount"]
     data : list = []
     traders : list
     currentTime : int
@@ -31,7 +33,7 @@ class GameManager:
         return self
     
     def getData(self):
-        data = [self.header]
+        data = [self.stockHeader]
         for d in self.data:
             data.append(d)
         return data
@@ -47,17 +49,17 @@ class GameManager:
     def progress(self):
         if self.currentTime >= len(self.data):
             raise IndexError("Current time has surpassed size of data.")
-        
-        # TODO: Would be nice to rework this into a screenManager
 
-        tableData = self.getData()
-        self.screenManager.request("Table", tableData)
+        stockData = self.getData()
+        self.screenManager.request("StockTable", stockData)
         
         for t in self.traders:
             currTrader : Trader = t
-            self.traderAction(t)
+            self.traderAction(currTrader)
         self.currentTime = self.currentTime + 1
-    
+        
+        # TODO: plz solve problem of updating screens
+            
     def endGame(self):
         for t in self.traders:
             displayTraderInfo(t)
@@ -66,6 +68,7 @@ class GameManager:
         if (trader.getController() == "Player"):
             choosing = True
             while choosing:
+                self.screenManager.screenChange("StockTable")
                 buySell : str = inputClean("Buy stock or sell stock? [b, s, n] ")
                 buySell = buySell.lower()
                 match buySell:
@@ -109,11 +112,13 @@ class GameManager:
         # need to get the current value of the stock
         if (trader.getController() == "Player"):
             playerStockCount = len(trader.stocks)
-            choosing = playerStockCount != 0
+            choosing = (playerStockCount != 0)
             if not choosing:
                 print("You have no stocks to sell!")
                 return
 
+            # TODO: display currently owned stocks
+            self.screenManager.request("TraderStocks", trader.getStocks())
             
             while choosing:
                 try:

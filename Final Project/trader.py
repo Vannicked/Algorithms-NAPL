@@ -1,3 +1,5 @@
+from bot import Stock
+
 class Trader:
     controller : str
     balance : float
@@ -7,7 +9,7 @@ class Trader:
     def __init__(self, controller, balance) -> None:
         self.controller = controller
         self.balance = balance
-        self.profit = 100
+        self.profit = 0
 
     def getController(self):
         return self.controller
@@ -17,3 +19,10 @@ class Trader:
     
     def popStock(self, i):
         return self.stocks.pop(i)
+    
+    def getStocks(self):
+        # returns a table-able list of stocks
+        stocksData = []
+        for stock in self.stocks:
+            stocksData.append([stock.name, stock.value])
+        return stocksData

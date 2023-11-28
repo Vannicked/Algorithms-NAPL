@@ -1,11 +1,11 @@
 
 class Screen:
     name : str
-    data : list
+    data : str
     
     def __init__(self, name) -> None:
         self.name = name
-        self.data = []
+        self.data = "This is an empty screen."
     
     def display(self):
         print(self.data)
@@ -14,9 +14,19 @@ class Screen:
         self.data = data
 
 class TableScreen(Screen):
+    header : list
+    data : list
+    
+    def __init__(self, name) -> None:
+        super().__init__(name)
+        self.header = []
     
     def display(self):
-        displayTable(self.data)
+        table = []
+        if len(self.header) > 0: # in the event of a dynamic header vs a static one
+            table = [self.header]
+        table += self.data
+        displayTable(table)
 
 
 
@@ -27,23 +37,35 @@ class ScreenManager:
     possibleScreens : dict
     
     def __init__(self):
-        screens = [Screen("Empty"), TableScreen("Table")]
+        screens = [Screen("Empty"), TableScreen("StockTable"), TableScreen("PlayerStocks")]
         self.possibleScreens = {}
         
         for screen in screens:
             self.possibleScreens[screen.name] = screen
         
         self.screen = self.possibleScreens["Empty"]
-        
     
-    def request(self, screenName, data = []):
+    def screenChange(self, screenName):
+        # sometimes we want a screen that changes, sometimes we don't
+        if screenName != self.screen.name:
+            self.screen = self.possibleScreens[screenName]
+            self.screen.display()
+    
+    def request(self, screenName):
         if screenName != self.screen.name:
             self.screen = self.possibleScreens[screenName]
         
-        if len(data) > 0:
-            self.screen.update(data)
-        
         self.screen.display()
+    
+    def request(self, screenName, data : list):
+        newScreen : Screen = self.possibleScreens[screenName]
+        newScreen.update(data)
+        self.possibleScreens[screenName] = newScreen
+        self.request(screenName)
+    
+    def update(self, screenName, data):
+        screen : Screen = self.possibleScreens[screenName]
+        screen.update(data)
 
 
 @staticmethod
