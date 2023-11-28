@@ -37,8 +37,12 @@ class ScreenManager:
     possibleScreens : dict
     
     def __init__(self):
-        screens = [Screen("Empty"), TableScreen("StockTable"), TableScreen("PlayerStocks")]
+        playerStocks = TableScreen("TraderStocks")
+        playerStocks.header = ["Stock", "Bought At", "Now At"] # this kind of meta programming feels bad
+        
+        screens = [Screen("Empty"), TableScreen("StockTable"), playerStocks, TableScreen("EndScreen")]
         self.possibleScreens = {}
+        
         
         for screen in screens:
             self.possibleScreens[screen.name] = screen
@@ -48,20 +52,17 @@ class ScreenManager:
     def screenChange(self, screenName):
         # sometimes we want a screen that changes, sometimes we don't
         if screenName != self.screen.name:
-            self.screen = self.possibleScreens[screenName]
+            self.screen : Screen = self.possibleScreens[screenName]
             self.screen.display()
     
-    def request(self, screenName):
-        if screenName != self.screen.name:
-            self.screen = self.possibleScreens[screenName]
+    def request(self, screenName, data : list = None):
+        if data != None:
+            newScreen : Screen = self.possibleScreens[screenName]
+            newScreen.update(data)
+            self.possibleScreens[screenName] = newScreen
         
+        self.screen : Screen = self.possibleScreens[screenName]
         self.screen.display()
-    
-    def request(self, screenName, data : list):
-        newScreen : Screen = self.possibleScreens[screenName]
-        newScreen.update(data)
-        self.possibleScreens[screenName] = newScreen
-        self.request(screenName)
     
     def update(self, screenName, data):
         screen : Screen = self.possibleScreens[screenName]
