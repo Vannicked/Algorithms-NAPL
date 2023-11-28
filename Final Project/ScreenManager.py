@@ -28,7 +28,8 @@ class TableScreen(Screen):
         table += self.data
         displayTable(table)
 
-
+class EndScreen(Screen):
+    header : list = ["Trader", "Starting Balance", "Current Balance", "Capital", "Profits"]
 
 # screen doesn't look like a word anymore
 class ScreenManager:
