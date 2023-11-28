@@ -1,16 +1,24 @@
 from trader import Trader
-import bot
+from bot import Stock
+from bot import Bot
+import ScreenManager
 
 
 class GameManager:
-    header = ["Stock", "M1", "M2"]
+    stockHeader = ["Stock", "M1", "M2"] # We'll need to implement a shifting date function
+    traderStocks = ["Stock", "Bought At", "Now", "Amount"]
     data : list = []
     traders : list
     currentTime : int
     timeframeStart : int
     timeframeEnd : int
+    screenManager : ScreenManager.ScreenManager
     
-    def sData(self, data):
+    def __init__(self) -> None:
+        self.screenManager = ScreenManager.ScreenManager()
+    
+    def sData(self, data): 
+        # all of these sName functions are set functions
         self.data = data
         return self
     
@@ -19,34 +27,126 @@ class GameManager:
         return self
     
     def sTimeframe(self, start, end):
+        self.currentTime = start
         self.timeframeStart = start
         self.timeframeEnd = end
         return self
     
     def getData(self):
-        data = [self.header]
+        data = [self.stockHeader]
         for d in self.data:
             data.append(d)
         return data
     
+    def gameStart(self):
+        gameRunning = True
+        while gameRunning:
+            gameRunning = self.currentTime <= self.timeframeEnd
+            
+            self.progress()
+        self.endGame()
+                
     def progress(self):
-        if currentTime == self.timeframeEnd:
-            self.endGame()
-        else:
-            currentTime = currentTime + 1
-    
+        if self.currentTime >= len(self.data):
+            raise IndexError("Current time has surpassed size of data.")
+
+        stockData = self.getData()
+        self.screenManager.request("StockTable", stockData)
+        
+        for t in self.traders:
+            currTrader : Trader = t
+            self.traderAction(currTrader)
+        self.currentTime = self.currentTime + 1
+        
+        # TODO: plz solve problem of updating screens
+            
     def endGame(self):
         for t in self.traders:
             displayTraderInfo(t)
 
-    def chooseStock(self, trader):
-        if (trader.getController == "Player"):
-            choice = input("Which stock to invest? ")
-            try:
-                choice = int(choice)
-                return choice
-            except:
-                print(f"Please input a whole number between 1 and {self.data.length}")
+    def traderAction(self, trader : Trader):
+        if (trader.getController() == "Player"):
+            choosing = True
+            while choosing:
+                self.screenManager.screenChange("StockTable")
+                buySell : str = inputClean("Buy stock or sell stock? [b, s, n] ")
+                buySell = buySell.lower()
+                match buySell:
+                    case "b":
+                        self.buyStock(trader)
+                    
+                    case "s":
+                        self.sellStock(trader)
+                    
+                    case "n":
+                        choosing = False
+                    
+                    case _:
+                        print("Please input either b or s for buy or sell respectively, or n to exit.")
+        else:
+            self.sellStock(trader)
+            self.buyStock(trader)
+
+    # it is frustrating how messy all of this is, but if it works I'll be happy
+    def buyStock(self, trader : Trader):
+        if (trader.getController() == "Player"):
+            choosing = True
+            while choosing:
+                try:
+                    choice = int(inputClean("Which stock to buy? ")) - 1
+                    if choice == -1:
+                        stockTup = None
+                        choosing == False
+                    else:
+                        stockTup = (self.data[choice][0], self.data[choice][self.currentTime])
+                        choosing = self.verifyChoice(stockTup)
+                except:
+                    print(f"Please input a whole number between 1 and {len(self.data)}, or 0 to choose none.")
+        
+        if stockTup != None:
+            stockChoice : Stock = Stock(stockTup[0], stockTup[1])
+            trader.addStock(stockChoice)
+
+    # TODO: implement selling stocks
+    def sellStock(self, trader : Trader):
+        # need to get the current value of the stock
+        if (trader.getController() == "Player"):
+            playerStockCount = len(trader.stocks)
+            choosing = (playerStockCount != 0)
+            if not choosing:
+                print("You have no stocks to sell!")
+                return
+
+            # TODO: display currently owned stocks
+            self.screenManager.request("TraderStocks", trader.getStocks())
+            
+            while choosing:
+                try:
+                    choice = int(inputClean("Which stock to sell? ")) - 1
+                    if choice == -1:
+                        stockTup = None
+                        choosing == False
+                    else:
+                        stockChoice : Stock = trader.stocks[choice] 
+                        stockTup = (stockChoice.name, stockChoice.value)
+                        choosing = self.verifyChoice(stockTup, 1)
+                except:
+                    print(f"Please input a whole number between 1 and {len(trader.stocks)}, or 0 to choose none.")
+        
+        if stockTup != None:
+            trader.popStock(stockChoice)
+
+    def verifyChoice(self, choice, buySell = 0):
+        # should take the choice after choose stock is called
+        verifying = True
+        bs = ("Buy", "Sell")
+        while verifying:
+            answer : str = inputClean(f"Are you sure you want to {bs[buySell]} {choice[0]} at {choice[1]}? [y/n] ")
+            answer = answer.lower()
+            if answer != 'y' and answer != 'n':
+                print("Please input a valid answer [y/n].")
+            else:
+                return answer == 'n'
 
 
 @staticmethod
@@ -135,16 +235,23 @@ def displayTraderInfo(t : Trader):
         bufferString = bufferString + s.name
     return bufferString
 
+@staticmethod
+def inputClean(s : str):
+    result : str = ""
+    try:
+        result : str = input(s)
+    except EOFError:
+        exit()
+    return result
+
 def main():
     playerBal = 100
     testData = [["AMC", 4.5, 7],["GME", 555, 6],["BBBYQ", 8, 999]]
     player = Trader("Player", playerBal)
     traders = [player]
-    game = GameManager()
-    game.sData(testData).sTimeframe(1, 6).sTraders(traders)
-    tableData = game.getData()
-    table = buildTable(tableData)
-    displayTable(table)
+    gameManager = GameManager()
+    gameManager.sData(testData).sTimeframe(1, 6).sTraders(traders)
+    gameManager.gameStart()
     
     
 
