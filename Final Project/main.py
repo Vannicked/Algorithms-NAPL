@@ -1,12 +1,10 @@
 from trader import Trader
-from bot import Stock
-from bot import Bot
+from trader import Stock
 import ScreenManager
 
 
 class GameManager:
     stockHeader = ["Stock", "M1", "M2"] # We'll need to implement a shifting date function
-    traderStocks = ["Stock", "Bought At", "Now", "Amount"]
     data : list = []
     traders : list
     currentTime : int
@@ -57,9 +55,7 @@ class GameManager:
             currTrader : Trader = t
             self.traderAction(currTrader)
         self.currentTime = self.currentTime + 1
-        
-        # TODO: plz solve problem of updating screens
-            
+                    
     def endGame(self):
         for t in self.traders:
             displayTraderInfo(t)
@@ -92,17 +88,20 @@ class GameManager:
         if (trader.getController() == "Player"):
             choosing = True
             while choosing:
+                choice = inputClean("Which stock to buy? ")
                 try:
-                    choice = int(inputClean("Which stock to buy? ")) - 1
+                    choice = int(choice) - 1
                     if choice == -1:
                         stockTup = None
-                        choosing == False
+                        choosing = False
                     else:
                         stockTup = (self.data[choice][0], self.data[choice][self.currentTime])
                         choosing = self.verifyChoice(stockTup)
                 except:
-                    print(f"Please input a whole number between 1 and {len(self.data)}, or 0 to choose none.")
-        
+                        print(f"Please input a whole number between 1 and {len(self.data)}, or 0 to choose none.")
+                        
+                
+    
         if stockTup != None:
             stockChoice : Stock = Stock(stockTup[0], stockTup[1])
             trader.addStock(stockChoice)
@@ -111,7 +110,7 @@ class GameManager:
     def sellStock(self, trader : Trader):
         # need to get the current value of the stock
         if (trader.getController() == "Player"):
-            playerStockCount = len(trader.stocks)
+            playerStockCount = len(trader.portfolio)
             choosing = (playerStockCount != 0)
             if not choosing:
                 print("You have no stocks to sell!")
@@ -121,20 +120,20 @@ class GameManager:
             self.screenManager.request("TraderStocks", trader.getStocks())
             
             while choosing:
+                choice = inputClean("Which stock to sell? ")
                 try:
-                    choice = int(inputClean("Which stock to sell? ")) - 1
+                    choice = int(choice) - 1
                     if choice == -1:
                         stockTup = None
-                        choosing == False
+                        choosing = False
                     else:
-                        stockChoice : Stock = trader.stocks[choice] 
-                        stockTup = (stockChoice.name, stockChoice.value)
-                        choosing = self.verifyChoice(stockTup, 1)
+                        stockTup = (self.data[choice][0], self.data[choice][self.currentTime])
+                        choosing = self.verifyChoice(stockTup)
                 except:
-                    print(f"Please input a whole number between 1 and {len(trader.stocks)}, or 0 to choose none.")
+                        print(f"Please input a whole number between 1 and {len(trader.portfolio)}, or 0 to choose none.")
         
         if stockTup != None:
-            trader.popStock(stockChoice)
+            trader.popStock(choice)
 
     def verifyChoice(self, choice, buySell = 0):
         # should take the choice after choose stock is called

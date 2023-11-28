@@ -1,6 +1,6 @@
 import pandas as pd
 
-stock_options = pd.read_csv("StockPrices.csv") #initialze a dataframe with all the data we need to access
+# stock_options = pd.read_csv("StockPrices.csv") #initialze a dataframe with all the data we need to access
 date = 0 #this is the index of the row in which we are looking at values for data, and will be updated as the game progresses
 
 class Bot:
