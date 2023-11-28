@@ -1,6 +1,7 @@
 import pandas as pd
+import random
 
-# stock_options = pd.read_csv("StockPrices.csv") #initialze a dataframe with all the data we need to access
+stock_options = pd.read_csv("StockPrices.csv") #initialze a dataframe with all the data we need to access
 date = 0 #this is the index of the row in which we are looking at values for data, and will be updated as the game progresses
 
 class Bot:
@@ -66,11 +67,22 @@ class Bot:
             for key in self.stocks:
                 if (self.money > stock_options[date][key]):
                     self.buy_stock(key, 5)
-
-
         print("longterm")
 
     def goldfish(self):
+        if date != 0:
+            for key in self.stocks:
+                self.sell_stock(key)
+            spending = random.randint(0, self.money)
+            for key in self.stocks:
+                if (spending > stock_options[date][key]):
+                    max = spending/(stock_options[date][key])
+                    self.buy_stock(key, random.randint(0, max))
+        else:
+            for key in self.stocks:
+                if (spending > stock_options[date][key]):
+                    max = spending/(stock_options[date][key])
+                    self.buy_stock(key, random.randint(0, max))
         print("goldfish")
 
     # Add a method to buy a stock and keep track of it
