@@ -1,15 +1,16 @@
 import pandas as pd
+import trader
 import random
 
-stock_options = pd.read_csv("StockPrices.csv") #initialze a dataframe with all the data we need to access
+stock_options : pd.DataFrame = pd.read_csv("StockPrices.csv") #initialze a dataframe with all the data we need to access
 date = 0 #this is the index of the row in which we are looking at values for data, and will be updated as the game progresses
 
-class Bot:
+class Bot(trader.Trader):
     
     #initialize a new bot object, including the algorithm it uses for trading, the amount of money it has, and difficulty level
-    def __init__(self, alg, money):
+    def __init__(self, controller, balance, alg):
+        super.__init__(self, controller, balance)
         self.alg = alg #alg is an integer meant to represent a specific trading strategy that we implement
-        self.money = money  #money is the amount of total money the bot has left after buying/selling
         self.stocks = {"AAL": 0,
                        "AAPL": 0,
                        "AMZN": 0,
@@ -34,14 +35,14 @@ class Bot:
         for stock in self.stocks:
             stock_prices[stock.name] = stock.value
 
-        while self.money > 0:
+        while self.balance > 0:
             # stock with the lowest current value
             min_stock_name = min(stock_prices, key=stock_prices.get)
 
             # Check if the bot can afford to buy the stock
-            if self.money >= stock_prices[min_stock_name]:
+            if self.balance >= stock_prices[min_stock_name]:
                 # Buy stock
-                self.money -= stock_prices[min_stock_name]
+                self.balance -= stock_prices[min_stock_name]
                 print(f"Buying {min_stock_name} for {stock_prices[min_stock_name]}")
                 # Update the bot's stocks list (need to implement this method)
                 self.buy_stock(min_stock_name)
@@ -52,7 +53,7 @@ class Bot:
             # Update the stock prices dictionary after the purchase
             stock_prices[min_stock_name] = stock_prices[min_stock_name] * 1.1  # Simulate price increase
 
-        #print(f"Remaining money: {self.money}")
+        #print(f"Remaining balance: {self.balance}")
         #print("End of Greedy Algorithm")
 
     def longterm(self):
@@ -61,11 +62,11 @@ class Bot:
             for key in self.stocks:
                 self.sell_stock(key)
             for key in self.stocks:
-                if (self.money > stock_options[date][key]):
+                if (self.balance > stock_options[date][key]):
                     self.buy_stock(key, 5)
         else:
             for key in self.stocks:
-                if (self.money > stock_options[date][key]):
+                if (self.balance > stock_options[date][key]):
                     self.buy_stock(key, 5)
         print("longterm")
 
@@ -88,11 +89,12 @@ class Bot:
     # Add a method to buy a stock and keep track of it
     def buy_stock(self, stock_name, shares):
         self.stocks.update[stock_name] = shares
-        self.money = self.money - (stock_options[date][stock_name] * shares)
+        self.balance = self.balance - (stock_options[date][stock_name] * shares)
 
     def sell_stock(self, stock_name):
-        self.money = self.money + (stock_options[date][stock_name] * self.stocks[stock_name])
-        self.stocks.update[stock_name] = 0
+        self.balance = self.balance + (stock_options[date][stock_name] * self.stocks[stock_name])
+        self.stocks[stock_name] = 0
+
 
     def invest(self):
         if (self.alg == 1):

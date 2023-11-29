@@ -6,7 +6,7 @@ import ScreenManager
 class GameManager:
     stockHeader = ["Stock", "M1", "M2"] # We'll need to implement a shifting date function
     data : list = []
-    traders : list
+    traders : list[Trader]
     currentTime : int
     timeframeStart : int
     timeframeEnd : int
@@ -39,12 +39,13 @@ class GameManager:
     def gameStart(self):
         gameRunning = True
         while gameRunning:
-            gameRunning = self.currentTime <= self.timeframeEnd
-            
             self.progress()
+            gameRunning = self.currentTime < self.timeframeEnd
         self.endGame()
                 
     def progress(self):
+        # flow of each turn: print stock table -> update stocks for traders -> traderAction -> updateTime
+        print("Turn " + str(self.currentTime - self.timeframeStart + 1))
         if self.currentTime >= len(self.data):
             raise IndexError("Current time has surpassed size of data.")
 
@@ -53,12 +54,15 @@ class GameManager:
         
         for t in self.traders:
             currTrader : Trader = t
-            self.traderAction(currTrader)
+            t.updateStocks(stockData)
+            self.traderAction(currTrader) # Splits into player and bot
         self.currentTime = self.currentTime + 1
                     
     def endGame(self):
+        print("Game over!")
         for t in self.traders:
-            displayTraderInfo(t)
+            t.determineProfits()
+            endTraderInfo(t)
 
     def traderAction(self, trader : Trader):
         if (trader.getController() == "Player"):
@@ -95,18 +99,23 @@ class GameManager:
                         stockTup = None
                         choosing = False
                     else:
-                        stockTup = (self.data[choice][0], self.data[choice][self.currentTime])
-                        choosing = self.verifyChoice(stockTup)
+                        stockValue = self.data[choice][self.currentTime]
+                        if stockValue > trader.balance:
+                            print(f"You can't afford to buy that stock! Current Balance: {trader.balance}")
+                        else:
+                            stockTup = (self.data[choice][0], stockValue)
+                            choosing = self.verifyChoice(stockTup, 0)
                 except:
                         print(f"Please input a whole number between 1 and {len(self.data)}, or 0 to choose none.")
-                        
-                
-    
+        else:
+            stockTup = ("something", 1)
+        # Bot uses algorithm on data held by gm, does its search function that returns a stock (Name, Current Value)
+
         if stockTup != None:
             stockChoice : Stock = Stock(stockTup[0], stockTup[1])
             trader.addStock(stockChoice)
+            trader.updateBalance(-stockChoice.valueBought)
 
-    # TODO: implement selling stocks
     def sellStock(self, trader : Trader):
         # need to get the current value of the stock
         if (trader.getController() == "Player"):
@@ -128,17 +137,20 @@ class GameManager:
                         choosing = False
                     else:
                         stockTup = (self.data[choice][0], self.data[choice][self.currentTime])
-                        choosing = self.verifyChoice(stockTup)
+                        choosing = self.verifyChoice(stockTup, 1)
                 except:
                         print(f"Please input a whole number between 1 and {len(trader.portfolio)}, or 0 to choose none.")
         
         if stockTup != None:
-            trader.popStock(choice)
+            stockChoice = trader.popStock(choice)
+            trader.updateBalance(stockChoice.currentValue)
 
-    def verifyChoice(self, choice, buySell = 0):
+    def verifyChoice(self, choice, buySell : int):
         # should take the choice after choose stock is called
+        if buySell == None:
+            raise ValueError("BuySell has not been set properly")
         verifying = True
-        bs = ("Buy", "Sell")
+        bs = ("buy", "sell")
         while verifying:
             answer : str = inputClean(f"Are you sure you want to {bs[buySell]} {choice[0]} at {choice[1]}? [y/n] ")
             answer = answer.lower()
@@ -149,90 +161,9 @@ class GameManager:
 
 
 @staticmethod
-def displayTable(table : list):
-    # should only take an array of strings as input
-    tableLength : int = len(table)
-    for i in range(tableLength):
-        print(table[i])
-    
-@staticmethod
-def buildTable(data : list):
-    # First row of data should be the header
-    header = data[0]
-    row = len(data)
-    col = len(header)
-    
-    
-    maxColArray = [] # holds the greatest length of an element found in each column
-    for j in range(col): 
-        maxColArray.append(len(header[j])) # initialize with the header elements
-    for i in range(1, row):
-        for j in range(col):
-            elem = str(data[i][j])
-            elemSize = len(elem)
-            if elemSize > maxColArray[j]:
-                maxColArray[j] = elemSize
-    
-    # assemble the header
-    tableArray = []
-    stringBuffer = ""
-    vertLine = "  | " # this variable creates the separators
-    for j in range(col):
-        maxSize = maxColArray[j]
-        stringBuffer += fillEmptySpace(header[j], maxSize)
-        if j != (col - 1): # if i == last element
-            stringBuffer += vertLine
-    tableArray.append(stringBuffer)
-    
-    # add a line separating the header from the data
-    stringBuffer = ""
-    for j in range(col):
-        stringBuffer += "-" * maxColArray[j]
-        if j != (col - 1):
-            stringBuffer += vertLine.replace(" ", "-")
-        else:
-            stringBuffer += "-"
-    tableArray.append(stringBuffer)
-    
-    # build each row of the table
-    for i in range(1, row):
-        stringBuffer = ""
-        for j in range(col):
-            maxSize = maxColArray[j]
-            elem = str(data[i][j])
-            elem = fillEmptySpace(elem, maxSize)
-            stringBuffer += elem
-            if j != (col - 1):
-                stringBuffer += vertLine
-        tableArray.append(stringBuffer)
-    
-    return tableArray
-
-@staticmethod
-def fillEmptySpace(s : str, maxLength : int):
-        inputLength = len(s)
-        stringBuffer = s
-        if inputLength > maxLength:
-            raise ValueError("Max length of a column value is larger than expected")
-        diff = maxLength - inputLength
-        for i in range(diff):
-            stringBuffer = stringBuffer + " "
-            #alt = i % 2
-            #match alt:
-            #    case 0:
-            #        stringBuffer = " " + stringBuffer
-            #    case 1:
-            #        stringBuffer = stringBuffer + " "
-            
-        return stringBuffer
-
-@staticmethod
-def displayTraderInfo(t : Trader):
-    bufferString = f"{t.controller}:" + "\n" + f"Profit: {t.profit}"
-    for s in t.stocks:
-        bufferString = bufferString + "\n"
-        bufferString = bufferString + s.name
-    return bufferString
+def endTraderInfo(t : Trader):
+    bufferString = f"{t.controller}:" + "\n" + f"Ending Capital: {t.capitalTotal}" + "\n" + f"Profit: {t.profit}"
+    print(bufferString)
 
 @staticmethod
 def inputClean(s : str):
@@ -246,10 +177,11 @@ def inputClean(s : str):
 def main():
     playerBal = 100
     testData = [["AMC", 4.5, 7],["GME", 555, 6],["BBBYQ", 8, 999]]
+    demoData = [] # 18 months of values
     player = Trader("Player", playerBal)
     traders = [player]
-    gameManager = GameManager()
-    gameManager.sData(testData).sTimeframe(1, 6).sTraders(traders)
+    gameManager = GameManager() # time frame is set to 1 for now, because of how we read the data
+    gameManager.sData(testData).sTimeframe(1, 3).sTraders(traders)
     gameManager.gameStart()
     
     
