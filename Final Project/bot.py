@@ -92,7 +92,7 @@ class Bot:
 
     def sell_stock(self, stock_name):
         self.money = self.money + (stock_options[date][stock_name] * self.stocks[stock_name])
-        self.stocks[stock_name] = 0
+        self.stocks.update[stock_name] = 0
 
     def invest(self):
         if (self.alg == 1):
