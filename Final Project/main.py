@@ -55,14 +55,14 @@ class GameManager:
         for t in self.traders:
             currTrader : Trader = t
             t.updateStocks(stockData)
-            self.traderAction(currTrader)
+            self.traderAction(currTrader) # Splits into player and bot
         self.currentTime = self.currentTime + 1
                     
     def endGame(self):
         print("Game over!")
         for t in self.traders:
             t.determineProfits()
-            displayTraderInfo(t)
+            endTraderInfo(t)
 
     def traderAction(self, trader : Trader):
         if (trader.getController() == "Player"):
@@ -107,8 +107,10 @@ class GameManager:
                             choosing = self.verifyChoice(stockTup, 0)
                 except:
                         print(f"Please input a whole number between 1 and {len(self.data)}, or 0 to choose none.")
-                        
-                
+        else:
+            stockTup = ("something", 1)
+        # Bot uses algorithm on data held by gm, does its search function that returns a stock (Name, Current Value)
+
         if stockTup != None:
             stockChoice : Stock = Stock(stockTup[0], stockTup[1])
             trader.addStock(stockChoice)
@@ -159,7 +161,7 @@ class GameManager:
 
 
 @staticmethod
-def displayTraderInfo(t : Trader):
+def endTraderInfo(t : Trader):
     bufferString = f"{t.controller}:" + "\n" + f"Ending Capital: {t.capitalTotal}" + "\n" + f"Profit: {t.profit}"
     print(bufferString)
 
@@ -175,6 +177,7 @@ def inputClean(s : str):
 def main():
     playerBal = 100
     testData = [["AMC", 4.5, 7],["GME", 555, 6],["BBBYQ", 8, 999]]
+    demoData = [] # 18 months of values
     player = Trader("Player", playerBal)
     traders = [player]
     gameManager = GameManager() # time frame is set to 1 for now, because of how we read the data

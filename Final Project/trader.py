@@ -3,10 +3,10 @@ class Stock:
     valueBought : float
     currentValue : float
     
-    def __init__(self, name : str, value : float) -> None:
+    def __init__(self, name : str, currentValue : float) -> None:
         self.name = name
-        self.valueBought = value
-        self.currentValue = value
+        self.valueBought = currentValue
+        self.currentValue = currentValue # could reference the index of the stock instead
 
 
 class Trader:
