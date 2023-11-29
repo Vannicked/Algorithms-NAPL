@@ -11,16 +11,16 @@ class Stock:
 
 class Trader:
     controller : str
-    starting_capital : float
-    overall_capital : float
+    capitalStart : float
+    capitalTotal : float
     balance : float
     portfolio : list[Stock]
     profit : float
     
     def __init__(self, controller, balance) -> None:
         self.controller = controller
-        self.starting_capital = balance
-        self.overall_capital = balance
+        self.capitalStart = balance
+        self.capitalTotal = balance
         self.balance = balance
         self.profit = 0
         self.portfolio = []
@@ -60,5 +60,5 @@ class Trader:
         stockSum : float = 0
         for stock in self.portfolio:
             stockSum += stock.currentValue
-        self.overall_capital = self.balance + stockSum
-        self.profit = self.overall_capital - self.starting_capital
+        self.capitalTotal = self.balance + stockSum
+        self.profit = self.capitalTotal - self.capitalStart

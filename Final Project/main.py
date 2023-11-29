@@ -113,8 +113,6 @@ class GameManager:
             stockChoice : Stock = Stock(stockTup[0], stockTup[1])
             trader.addStock(stockChoice)
             trader.updateBalance(-stockChoice.valueBought)
-                
-
 
     def sellStock(self, trader : Trader):
         # need to get the current value of the stock
@@ -162,10 +160,7 @@ class GameManager:
 
 @staticmethod
 def displayTraderInfo(t : Trader):
-    bufferString = f"{t.controller}:" + "\n" + f"Profit: {t.profit}"
-    for s in t.portfolio:
-        bufferString = bufferString + "\n"
-        bufferString = bufferString + s.name
+    bufferString = f"{t.controller}:" + "\n" + f"Ending Capital: {t.capitalTotal}" + "\n" + f"Profit: {t.profit}"
     print(bufferString)
 
 @staticmethod
