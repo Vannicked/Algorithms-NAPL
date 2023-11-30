@@ -16,14 +16,16 @@ class Trader:
     balance : float
     portfolio : list[Stock]
     profit : float
+    botAlgorithm : int
     
-    def __init__(self, controller, balance) -> None:
+    def __init__(self, controller, balance, botAlg) -> None:
         self.controller = controller
         self.capitalStart = balance
         self.capitalTotal = balance
         self.balance = balance
         self.profit = 0
         self.portfolio = []
+        self.botAlgorithm = botAlg
 
     def getController(self):
         return self.controller

@@ -1,5 +1,6 @@
 from trader import Trader
 from trader import Stock
+import random
 import ScreenManager
 
 
@@ -84,8 +85,12 @@ class GameManager:
                     case _:
                         print("Please input either b or s for buy or sell respectively, or n to exit.")
         else:
-            self.sellStock(trader)
-            self.buyStock(trader)
+            if trader.botAlgorithm == 1:
+                self.botGreed(trader)
+            elif trader.botAlgorithm == 2:
+                self.botLong(trader)
+            else:
+                self.botGoldfish(trader)
 
     # it is frustrating how messy all of this is, but if it works I'll be happy
     def buyStock(self, trader : Trader):
@@ -158,6 +163,59 @@ class GameManager:
                 print("Please input a valid answer [y/n].")
             else:
                 return answer == 'n'
+            
+    def botGreed(self, trader : Trader):
+        print('greedy alg')
+
+    def botLong(self, trader : Trader):
+        if len(trader.portfolio) == 0:
+            maxInvestment = trader.balance
+            for stock in self.data:
+                stock : Stock
+                if stock.currentValue <= maxInvestment:
+                    trader.addStock(stock)
+                    trader.updateBalance(-stock.currentValue)
+                    maxInvestment = maxInvestment - stock.currentValue
+                else:
+                    continue
+        else:
+            while len(trader.portfolio) > 0:
+                stock = trader.popStock(0)
+                trader.updateBalance(stock.currentValue)
+            maxInvestment = trader.balance
+            for stock in self.data:
+                stock : Stock
+                if stock.currentValue <= maxInvestment:
+                    trader.addStock(stock) #adding stock needs to allow for selection of number of shares to add
+                    trader.updateBalance(-stock.currentValue)
+                    maxInvestment = maxInvestment - stock.currentValue
+                else:
+                    continue
+
+    def botGoldfish(self, trader : Trader):
+        if len(trader.portfolio) == 0:
+            maxInvestment = random.random(0, trader.balance)
+            for stock in self.data:
+                stock : Stock
+                if stock.currentValue <= maxInvestment:
+                    trader.addStock(stock)
+                    trader.updateBalance(-stock.currentValue)
+                    maxInvestment = maxInvestment - stock.currentValue
+                else:
+                    continue
+        else:
+            while len(trader.portfolio) > 0:
+                stock = trader.popStock(0)
+                trader.updateBalance(stock.currentValue)
+            maxInvestment = random.random(0, trader.balance)
+            for stock in self.data:
+                stock : Stock
+                if stock.currentValue <= maxInvestment:
+                    trader.addStock(stock)
+                    trader.updateBalance(-stock.currentValue)
+                    maxInvestment = maxInvestment - stock.currentValue
+                else:
+                    continue
 
 
 @staticmethod
@@ -178,7 +236,7 @@ def main():
     playerBal = 100
     testData = [["AMC", 4.5, 7],["GME", 555, 6],["BBBYQ", 8, 999]]
     demoData = [] # 18 months of values
-    player = Trader("Player", playerBal)
+    player = Trader("Player", playerBal, 0)
     traders = [player]
     gameManager = GameManager() # time frame is set to 1 for now, because of how we read the data
     gameManager.sData(testData).sTimeframe(1, 3).sTraders(traders)
