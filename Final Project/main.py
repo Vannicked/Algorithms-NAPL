@@ -117,7 +117,7 @@ class GameManager:
         # Bot uses algorithm on data held by gm, does its search function that returns a stock (Name, Current Value)
 
         if stockTup != None:
-            stockChoice : Stock = Stock(stockTup[0], stockTup[1])
+            stockChoice : Stock = Stock(stockTup[0], stockTup[1], choice)
             trader.addStock(stockChoice)
             trader.updateBalance(-stockChoice.valueBought)
 
@@ -141,7 +141,7 @@ class GameManager:
                         stockTup = None
                         choosing = False
                     else:
-                        stockTup = (self.data[choice][0], self.data[choice][self.currentTime])
+                        stockTup = (trader.portfolio[choice].name, self.data[trader.portfolio[choice].buyIndex][self.currentTime])
                         choosing = self.verifyChoice(stockTup, 1)
                 except:
                         print(f"Please input a whole number between 1 and {len(trader.portfolio)}, or 0 to choose none.")
@@ -165,57 +165,118 @@ class GameManager:
                 return answer == 'n'
             
     def botGreed(self, trader : Trader):
-        print('greedy alg')
+        if len(trader.portfolio) == 0:
+            maxInvestment = trader.balance
+            index = 0
+            for stock in self.data:
+                s : Stock = Stock(stock[0], stock[1], index)
+                index += 1
+                if stock[1] <= maxInvestment:
+                    trader.addStock(s)
+                    trader.updateBalance(-stock[1])
+                    maxInvestment = maxInvestment - stock[1]
+                else:
+                    continue
+        else:
+            index = 0
+            while len(trader.portfolio) > 0:
+                stock : Stock = trader.popStock(0)
+                trader.updateBalance(stock.currentValue)
+            maxInvestment = trader.balance
+            for stock in self.data:
+                s : Stock = Stock(stock[0], stock[1], index)
+                index += 1
+                if stock[1] <= maxInvestment:
+                    trader.addStock(s)
+                    trader.updateBalance(-stock[1])
+                    maxInvestment = maxInvestment - stock[1]
+                else:
+                    continue
 
     def botLong(self, trader : Trader):
         if len(trader.portfolio) == 0:
-            maxInvestment = trader.balance
+            index = 0
+            maxInvestment = trader.balance / len(self.data)
             for stock in self.data:
-                stock : Stock
-                if stock.currentValue <= maxInvestment:
-                    trader.addStock(stock)
-                    trader.updateBalance(-stock.currentValue)
-                    maxInvestment = maxInvestment - stock.currentValue
+                s : Stock = Stock(stock[0], stock[1], index)
+                index += 1 
+                if stock[1] <= maxInvestment and trader.balance >= stock[1]:
+                    trader.addStock(s)
+                    trader.updateBalance(-stock[1])
                 else:
                     continue
         else:
             while len(trader.portfolio) > 0:
                 stock = trader.popStock(0)
                 trader.updateBalance(stock.currentValue)
-            maxInvestment = trader.balance
+            maxInvestment = trader.balance / len(self.data)
+            index = 0
             for stock in self.data:
-                stock : Stock
-                if stock.currentValue <= maxInvestment:
-                    trader.addStock(stock) #adding stock needs to allow for selection of number of shares to add
-                    trader.updateBalance(-stock.currentValue)
-                    maxInvestment = maxInvestment - stock.currentValue
+                s : Stock = Stock(stock[0], stock[1], index)
+                index += 1
+                if stock[1] <= maxInvestment and trader.balance >= stock[1]:
+                    trader.addStock(s) #adding stock needs to allow for selection of number of shares to add
+                    trader.updateBalance(-stock[1])
                 else:
                     continue
 
     def botGoldfish(self, trader : Trader):
         if len(trader.portfolio) == 0:
-            maxInvestment = random.random(0, trader.balance)
-            for stock in self.data:
-                stock : Stock
-                if stock.currentValue <= maxInvestment:
-                    trader.addStock(stock)
-                    trader.updateBalance(-stock.currentValue)
-                    maxInvestment = maxInvestment - stock.currentValue
-                else:
+            maxInvestment = random.uniform(0, trader.balance)
+            stockToBuy = random.randint(0, len(self.data) - 1)
+            repeats = 0
+            while repeats < len(self.data):
+                s = Stock(self.data[stockToBuy][0], self.data[stockToBuy][1], stockToBuy)
+                if s.currentValue > maxInvestment:
+                    repeats = repeats + 1
+                    stockToBuy = random.randint(0, len(self.data) - 1)
                     continue
+                else:
+                    flag = 0
+                    for stock in trader.portfolio:
+                        if s.buyIndex == stock.buyIndex:
+                            repeats = repeats + 1
+                            flag = 1
+                            break
+                        else:
+                            continue
+                    if flag == 0:
+                        trader.addStock(s)
+                        trader.updateBalance(-s.currentValue)
+                        maxInvestment -= s.currentValue
+                        stockToBuy = random.randint(0, len(self.data) - 1)
+                    else:
+                        stockToBuy = random.randint(0, len(self.data) - 1)
         else:
             while len(trader.portfolio) > 0:
                 stock = trader.popStock(0)
                 trader.updateBalance(stock.currentValue)
-            maxInvestment = random.random(0, trader.balance)
-            for stock in self.data:
-                stock : Stock
-                if stock.currentValue <= maxInvestment:
-                    trader.addStock(stock)
-                    trader.updateBalance(-stock.currentValue)
-                    maxInvestment = maxInvestment - stock.currentValue
-                else:
+            maxInvestment = random.uniform(0, trader.balance)
+            stockToBuy = random.randint(0, len(self.data) - 1)
+            repeats = 0
+            while repeats < len(self.data):
+                s = Stock(self.data[stockToBuy][0], self.data[stockToBuy][1], stockToBuy)
+                if s.currentValue > maxInvestment:
+                    repeats = repeats + 1
+                    stockToBuy = random.randint(0, len(self.data) - 1)
                     continue
+                else:
+                    flag = 0
+                    for stock in trader.portfolio:
+                        if s.buyIndex == stock.buyIndex:
+                            repeats = repeats + 1
+                            flag = 1
+                            break
+                        else:
+                            continue
+                    if flag == 0:
+                        trader.addStock(s)
+                        trader.updateBalance(-s.currentValue)
+                        maxInvestment -= s.currentValue
+                        stockToBuy = random.randint(0, len(self.data) - 1)
+                    else:
+                        stockToBuy = random.randint(0, len(self.data) - 1)
+                        
 
 
 @staticmethod
@@ -237,11 +298,12 @@ def main():
     testData = [["AMC", 4.5, 7],["GME", 555, 6],["BBBYQ", 8, 999]]
     demoData = [] # 18 months of values
     player = Trader("Player", playerBal, 0)
-    traders = [player]
+    botOne = Trader("Greedy Lad", playerBal, 1)
+    botTwo = Trader("Wise Guy", playerBal, 2)
+    botThree = Trader("Silly Billy", playerBal, 3)
+    traders = [player, botOne, botTwo, botThree]
     gameManager = GameManager() # time frame is set to 1 for now, because of how we read the data
     gameManager.sData(testData).sTimeframe(1, 3).sTraders(traders)
     gameManager.gameStart()
     
-    
-
 main()

@@ -2,12 +2,13 @@ class Stock:
     name : str
     valueBought : float
     currentValue : float
+    buyIndex : int
     
-    def __init__(self, name : str, currentValue : float) -> None:
+    def __init__(self, name : str, currentValue : float, buyIndex : int) -> None:
         self.name = name
         self.valueBought = currentValue
         self.currentValue = currentValue # could reference the index of the stock instead
-
+        self.buyIndex = buyIndex
 
 class Trader:
     controller : str
