@@ -109,7 +109,7 @@ class GameManager:
     def inputAmount(self, max : int = 0):
         choosing = True
         while choosing:
-            choice = inputClean("How many? ")
+            choice = inputClean("How many shares? ")
             try:
                 choice = int(choice)
                 return choice
@@ -194,6 +194,8 @@ class GameManager:
                 print("Please input a valid answer [y/n].")
             else:
                 return answer == 'n'
+            
+#Bot functions need to be able to trade in specific amounts of shares, as they currently operate under the previous system of buying a single stock
     
     def botGreed(self, trader : Trader):
         if len(trader.portfolio) == 0:
