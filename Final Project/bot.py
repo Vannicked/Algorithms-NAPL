@@ -9,7 +9,7 @@ class Bot(trader.Trader):
     
     #initialize a new bot object, including the algorithm it uses for trading, the amount of money it has, and difficulty level
     def __init__(self, controller, balance, alg):
-        super.__init__(self, controller, balance)
+        super.__init__(self, controller, balance, alg)
         self.alg = alg #alg is an integer meant to represent a specific trading strategy that we implement
         self.stocks = {"AAL": 0,
                        "AAPL": 0,
