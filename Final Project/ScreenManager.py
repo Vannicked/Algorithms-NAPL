@@ -28,8 +28,13 @@ class TableScreen(Screen):
         table += self.data
         displayTable(table)
 
-class EndScreen(Screen):
-    header : list = ["Trader", "Starting Balance", "Current Balance", "Capital", "Profits"]
+class EndScreen(TableScreen):
+    header : list
+        
+    def __init__(self, name) -> None:
+        super().__init__(name)
+        self.header : list = ["Trader", "Starting Balance", "Ending Capital", "Profit"]
+
 
 # screen doesn't look like a word anymore
 class ScreenManager:
@@ -39,9 +44,9 @@ class ScreenManager:
     
     def __init__(self):
         playerStocks = TableScreen("TraderStocks")
-        playerStocks.header = ["Stock", "Bought At", "Now At"] # this kind of meta programming feels bad
+        playerStocks.header = ["Stock", "Bought At", "Now At", "Quantity", "Total Value"] # this kind of meta programming feels bad
         
-        screens = [Screen("Empty"), TableScreen("StockTable"), playerStocks, TableScreen("EndScreen")]
+        screens : list[Screen] = [Screen("Empty"), TableScreen("StockTable"), playerStocks, EndScreen("EndScreen")]
         self.possibleScreens = {}
         
         

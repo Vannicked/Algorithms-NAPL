@@ -5,7 +5,7 @@ import ScreenManager
 
 
 class GameManager:
-    stockHeader = ["Stock", "M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9", "M10", "M11", "M12"] # We'll need to implement a shifting date function
+    stockHeader = ["Stock", "M1", "M2", "M3", "M4", "M5", "M6"] # We'll need to implement a shifting date function
     data : list = []
     traders : list[Trader]
     currentTime : int
@@ -32,11 +32,13 @@ class GameManager:
         return self
     
     def getData(self):
+        # More accurately maybe, we are getting the table for the current time.
         data = [self.stockHeader]
         for d in self.data:
-            data.append(d)
+            row = [d[0]] + d[(self.currentTime-5) : (self.currentTime + 1)] 
+            data.append(row)
         return data
-    
+
     def gameStart(self):
         gameRunning = True
         while gameRunning:
@@ -44,12 +46,20 @@ class GameManager:
             gameRunning = self.currentTime < self.timeframeEnd
         self.endGame()
                 
+    def updateHeader(self):
+        self.stockHeader = ["Stock"]
+        for i in range(self.currentTime-5, self.currentTime):
+            month = f"M{i}"
+            self.stockHeader.append(month)
+        self.stockHeader.append(f"M{self.currentTime}(Now)")
+    
     def progress(self):
         # flow of each turn: print stock table -> update stocks for traders -> traderAction -> updateTime
-        print("Turn " + str(self.currentTime - self.timeframeStart + 1))
+        print("Turn " + str(self.currentTime - self.timeframeStart))
         if self.currentTime >= len(self.data[0]):
             raise IndexError("Current time has surpassed size of data.")
 
+        self.updateHeader()
         stockData = self.getData()
         self.screenManager.request("StockTable", stockData)
         
@@ -61,12 +71,16 @@ class GameManager:
                     
     def endGame(self):
         print("Game over!")
+        traderTable = [] 
         for t in self.traders:
             t.determineProfits()
-            endTraderInfo(t)
+            traderRow = [t.controller, t.capitalStart, t.capitalTotal, t.profit]
+            traderTable.append(traderRow)
+        self.screenManager.request("EndScreen", traderTable)
 
     def traderAction(self, trader : Trader):
         if (trader.getController() == "Player"):
+            print(f"Current Balance: {trader.balance}")
             choosing = True
             while choosing:
                 self.screenManager.screenChange("StockTable")
@@ -83,7 +97,7 @@ class GameManager:
                         choosing = False
                     
                     case _:
-                        print("Please input either b or s for buy or sell respectively, or n to exit.")
+                        print("Please input either b or s for buy or sell respectively, or n to progress time.")
         else:
             if trader.botAlgorithm == 1:
                 self.botGreed(trader)
@@ -91,6 +105,20 @@ class GameManager:
                 self.botLong(trader)
             else:
                 self.botGoldfish(trader)
+
+    def inputAmount(self, max : int = 0):
+        choosing = True
+        while choosing:
+            choice = inputClean("How many? ")
+            try:
+                choice = int(choice)
+                return choice
+            except:
+                if max > 0:
+                    print(f"Please input a number bewtween 0 and {max}")
+                else:
+                    print("Please input a whole number.")
+                    
 
     # it is frustrating how messy all of this is, but if it works I'll be happy
     def buyStock(self, trader : Trader):
@@ -105,21 +133,21 @@ class GameManager:
                         choosing = False
                     else:
                         stockValue = self.data[choice][self.currentTime]
-                        if stockValue > trader.balance:
-                            print(f"You can't afford to buy that stock! Current Balance: {trader.balance}")
+                        amount = self.inputAmount()
+                        if (stockValue*amount) > trader.balance:
+                            print(f"You can't afford to buy that much stock! Current Balance: {trader.balance}")
                         else:
-                            stockTup = (self.data[choice][0], stockValue)
+                            stockTup = (self.data[choice][0], stockValue, amount)
                             choosing = self.verifyChoice(stockTup, 0)
                 except:
                         print(f"Please input a whole number between 1 and {len(self.data)}, or 0 to choose none.")
-        else:
-            stockTup = ("something", 1)
+
         # Bot uses algorithm on data held by gm, does its search function that returns a stock (Name, Current Value)
 
         if stockTup != None:
-            stockChoice : Stock = Stock(stockTup[0], stockTup[1], choice)
+            stockChoice : Stock = Stock(stockTup[0], stockTup[1], choice, stockTup[2])
             trader.addStock(stockChoice)
-            trader.updateBalance(-stockChoice.valueBought)
+            trader.updateBalance(-stockChoice.totalValue)
 
     def sellStock(self, trader : Trader):
         # need to get the current value of the stock
@@ -141,14 +169,17 @@ class GameManager:
                         stockTup = None
                         choosing = False
                     else:
-                        stockTup = (trader.portfolio[choice].name, self.data[trader.portfolio[choice].buyIndex][self.currentTime])
-                        choosing = self.verifyChoice(stockTup, 1)
+                        stock : Stock = trader.portfolio[choice]
+                        amount = self.inputAmount(stock.amount)
+                        if amount != 0:
+                            stockTup = (stock.name, stock.currentValue, amount)
+                            choosing = self.verifyChoice(stockTup, 1)
                 except:
                         print(f"Please input a whole number between 1 and {len(trader.portfolio)}, or 0 to choose none.")
         
         if stockTup != None:
-            stockChoice = trader.popStock(choice)
-            trader.updateBalance(stockChoice.currentValue)
+            stockChoice = trader.popStock(choice, amount)
+            trader.updateBalance(stockChoice.totalValue)
 
     def verifyChoice(self, choice, buySell : int):
         # should take the choice after choose stock is called
@@ -157,13 +188,13 @@ class GameManager:
         verifying = True
         bs = ("buy", "sell")
         while verifying:
-            answer : str = inputClean(f"Are you sure you want to {bs[buySell]} {choice[0]} at {choice[1]}? [y/n] ")
+            answer : str = inputClean(f"Are you sure you want to {bs[buySell]} {choice[2]} shares of {choice[0]} at {choice[1]}? [y/n] ")
             answer = answer.lower()
             if answer != 'y' and answer != 'n':
                 print("Please input a valid answer [y/n].")
             else:
                 return answer == 'n'
-            
+    
     def botGreed(self, trader : Trader):
         if len(trader.portfolio) == 0:
             maxInvestment = trader.balance
@@ -281,7 +312,8 @@ class GameManager:
 
 @staticmethod
 def endTraderInfo(t : Trader):
-    bufferString = f"{t.controller}:" + "\n" + f"Ending Capital: {t.capitalTotal}" + "\n" + f"Profit: {t.profit}"
+    bufferString = f"{t.controller}:" + "\n" + f"- Starting Capital: {t.capitalStart}"+ \
+                    "\n" + f"- Ending Capital: {t.capitalTotal}" + "\n" + f"- Profit: {t.profit}"
     print(bufferString)
 
 @staticmethod
@@ -298,12 +330,12 @@ def main():
     testData = [["AMC", 4.5, 7],["GME", 555, 6],["BBBYQ", 8, 999]]
     demoData = [["AMC", 4.5, 7, 10, 19, 17, 21, 22, 25, 23.5, 30.1, 28.4, 29], ["SHC", 2.1, 2, 2.4, 3.4, 3, 3.4, 3.2, 4.8, 5, 5.1, 5, 5.1], ["RGL", 32, 30, 26.2, 28.1, 28.4, 27.3, 25.9, 26.7, 24.3, 22, 21.3, 19.5]] # 18 months of values
     player = Trader("Player", playerBal, 0)
-    botOne = Trader("Greedy Lad", playerBal, 1)
+    botOne = Trader("Greedy Grinner", playerBal, 1)
     botTwo = Trader("Wise Guy", playerBal, 2)
-    botThree = Trader("Silly Billy", playerBal, 3)
+    botThree = Trader("A Goldfish", playerBal, 3)
     traders = [player, botOne, botTwo, botThree]
     gameManager = GameManager() # time frame is set to 1 for now, because of how we read the data
-    gameManager.sData(demoData).sTimeframe(1, 13).sTraders(traders)
+    gameManager.sData(demoData).sTimeframe(6, 13).sTraders(traders)
     gameManager.gameStart()
     
 main()
