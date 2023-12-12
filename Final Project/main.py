@@ -3,7 +3,6 @@ from trader import Stock
 import random
 import ScreenManager
 
-
 class GameManager:
     stockHeader = ["Stock", "M1", "M2", "M3", "M4", "M5", "M6"] # We'll need to implement a shifting date function
     data : list = []
@@ -146,8 +145,7 @@ class GameManager:
 
         if stockTup != None:
             stockChoice : Stock = Stock(stockTup[0], stockTup[1], choice, stockTup[2])
-            trader.addStock(stockChoice)
-            trader.updateBalance(-stockChoice.totalValue)
+            trader.buyStock(stockChoice)
 
     def sellStock(self, trader : Trader):
         # need to get the current value of the stock
@@ -178,8 +176,7 @@ class GameManager:
                         print(f"Please input a whole number between 1 and {len(trader.portfolio)}, or 0 to choose none.")
         
         if stockTup != None:
-            stockChoice = trader.popStock(choice, amount)
-            trader.updateBalance(stockChoice.totalValue)
+            trader.sellStock(choice, amount)
 
     def verifyChoice(self, choice, buySell : int):
         # should take the choice after choose stock is called
@@ -203,23 +200,20 @@ class GameManager:
                 s : Stock = Stock(stock[0], stock[1], index)
                 index += 1
                 if stock[1] <= maxInvestment:
-                    trader.addStock(s)
-                    trader.updateBalance(-stock[1])
+                    trader.buyStock(s)
                     maxInvestment = maxInvestment - stock[1]
                 else:
                     continue
         else:
             index = 0
             while len(trader.portfolio) > 0:
-                stock : Stock = trader.popStock(0)
-                trader.updateBalance(stock.currentValue)
+                trader.sellStock(0)
             maxInvestment = trader.balance
             for stock in self.data:
                 s : Stock = Stock(stock[0], stock[1], index)
                 index += 1
                 if stock[1] <= maxInvestment:
-                    trader.addStock(s)
-                    trader.updateBalance(-stock[1])
+                    trader.buyStock(s)
                     maxInvestment = maxInvestment - stock[1]
                 else:
                     continue
@@ -232,22 +226,19 @@ class GameManager:
                 s : Stock = Stock(stock[0], stock[1], index)
                 index += 1 
                 if stock[1] <= maxInvestment and trader.balance >= stock[1]:
-                    trader.addStock(s)
-                    trader.updateBalance(-stock[1])
+                    trader.buyStock(s)
                 else:
                     continue
         else:
             while len(trader.portfolio) > 0:
-                stock = trader.popStock(0)
-                trader.updateBalance(stock.currentValue)
+                trader.sellStock(0)
             maxInvestment = trader.balance / len(self.data)
             index = 0
             for stock in self.data:
                 s : Stock = Stock(stock[0], stock[1], index)
                 index += 1
                 if stock[1] <= maxInvestment and trader.balance >= stock[1]:
-                    trader.addStock(s) #adding stock needs to allow for selection of number of shares to add
-                    trader.updateBalance(-stock[1])
+                    trader.buyStock(s) #adding stock needs to allow for selection of number of shares to add
                 else:
                     continue
 
@@ -272,16 +263,14 @@ class GameManager:
                         else:
                             continue
                     if flag == 0:
-                        trader.addStock(s)
-                        trader.updateBalance(-s.currentValue)
+                        trader.buyStock(s)
                         maxInvestment -= s.currentValue
                         stockToBuy = random.randint(0, len(self.data) - 1)
                     else:
                         stockToBuy = random.randint(0, len(self.data) - 1)
         else:
             while len(trader.portfolio) > 0:
-                stock = trader.popStock(0)
-                trader.updateBalance(stock.currentValue)
+                trader.sellStock(0)
             maxInvestment = random.uniform(0, trader.balance)
             stockToBuy = random.randint(0, len(self.data) - 1)
             repeats = 0
@@ -301,8 +290,7 @@ class GameManager:
                         else:
                             continue
                     if flag == 0:
-                        trader.addStock(s)
-                        trader.updateBalance(-s.currentValue)
+                        trader.buyStock(s)
                         maxInvestment -= s.currentValue
                         stockToBuy = random.randint(0, len(self.data) - 1)
                     else:

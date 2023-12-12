@@ -66,6 +66,14 @@ class Trader:
         if self.controller == "Player":
             print(f"New Balance: {self.balance}")
         
+    def buyStock(self, s : Stock):
+        self.addStock(s)
+        self.updateBalance(-s.totalValue)
+        
+    def sellStock(self, i : int, amount : int = 1):
+        stockChoice : Stock = self.popStock(i, amount)
+        self.updateBalance(stockChoice.totalValue)
+        
     def getStocks(self):
         # returns a table-able list of stocks
         stocksData = []
@@ -87,6 +95,6 @@ class Trader:
         # assume already updated
         stockSum : float = 0
         for stock in self.portfolio:
-            stockSum += stock.currentValue
+            stockSum += stock.totalValue
         self.capitalTotal = self.balance + stockSum
         self.profit = self.capitalTotal - self.capitalStart
