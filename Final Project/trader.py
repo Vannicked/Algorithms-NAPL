@@ -30,6 +30,8 @@ class Trader:
     portfolio : list[Stock]
     profit : float
     botAlgorithm : int
+    historyIndex : int
+    tradeHistory : list[list[tuple]]
     
     def __init__(self, controller, balance, botAlg) -> None:
         self.controller = controller
@@ -38,6 +40,8 @@ class Trader:
         self.balance = balance
         self.profit = 0
         self.portfolio = []
+        self.tradeHistory = []
+        self.historyIndex = -1      
         self.botAlgorithm = botAlg
 
     def getController(self):
@@ -69,11 +73,18 @@ class Trader:
     def buyStock(self, s : Stock):
         self.addStock(s)
         self.updateBalance(-s.totalValue)
+        self.updateHistory("Buy", s)
         
     def sellStock(self, i : int, amount : int = 1):
         stockChoice : Stock = self.popStock(i, amount)
         self.updateBalance(stockChoice.totalValue)
+        self.updateHistory("Sell", stockChoice)
         
+    def updateHistory(self, buySell, stock):
+        # because stocks are updated every cycle, we have a reliable counter method
+        block = (buySell, stock) # blocks should contain ("Buy"/"Sell", Stock object)
+        self.tradeHistory[self.historyIndex] += [block]
+    
     def getStocks(self):
         # returns a table-able list of stocks
         stocksData = []
@@ -82,6 +93,9 @@ class Trader:
         return stocksData
     
     def updateStocks(self, data : list):
+        self.historyIndex += 1 # increment for update history
+        self.tradeHistory += [[]]
+        
         dataLen = len(data)
         for i in range(dataLen):
             dataRow = data[i]
@@ -90,6 +104,17 @@ class Trader:
                 playerStock : Stock = self.portfolio[j]
                 if playerStock.name == currentStock[0]:
                     playerStock.update(currentStock[1])
+    
+    def getHistory(self) -> list:
+        # returns a list that conforms to HistoryScreen, except for month
+        historyList : list = []
+        for i in range(len(self.tradeHistory)):
+            month = self.tradeHistory[i]
+            for block in month:
+                stock : Stock = block[1]
+                blockInfo : list = [i, block[0], stock.name, stock.currentValue, stock.amount, stock.totalValue]
+                historyList.append(blockInfo)
+        return historyList
     
     def determineProfits(self):
         # assume already updated

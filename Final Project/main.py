@@ -54,7 +54,8 @@ class GameManager:
     
     def progress(self):
         # flow of each turn: print stock table -> update stocks for traders -> traderAction -> updateTime
-        print("Turn " + str(self.currentTime - self.timeframeStart))
+        turnNumber = self.currentTime - self.timeframeStart
+        print("Turn " + str(turnNumber))
         if self.currentTime >= len(self.data[0]):
             raise IndexError("Current time has surpassed size of data.")
 
@@ -76,6 +77,34 @@ class GameManager:
             traderRow = [t.controller, t.capitalStart, t.capitalTotal, t.profit]
             traderTable.append(traderRow)
         self.screenManager.request("EndScreen", traderTable)
+        self.askTraderHistory()
+        print("Thanks for playing!")
+        
+    def askTraderHistory(self):
+        print(f"You may look at the trade history of the players [1-{len(self.traders)}]")
+        choosing = True
+        another = "a"
+        while choosing:
+            choice = inputClean(f"Look at {another} trader's history? (Enter 0 to end program): ")
+            try:
+                choice = int(choice) - 1
+                if choice == -1:
+                    choosing = False
+                else:
+                    trader = self.traders[choice]
+                    another = "another"
+                    self.displayTraderHistory(trader)
+            except:
+                print(f"Please input a whole number between 1 and {len(self.traders)}, or 0 to choose none.")
+
+                
+
+    def displayTraderHistory(self, t : Trader):
+        traderHistory = t.getHistory()
+        for i in range(len(traderHistory)):
+            traderHistory[i][0] += self.timeframeStart
+        print(f"{t.controller}'s trading history:")
+        self.screenManager.request("HistoryScreen", traderHistory)
 
     def traderAction(self, trader : Trader):
         if (trader.getController() == "Player"):
@@ -156,7 +185,6 @@ class GameManager:
                 print("You have no stocks to sell!")
                 return
 
-            # TODO: display currently owned stocks
             self.screenManager.request("TraderStocks", trader.getStocks())
             
             while choosing:
